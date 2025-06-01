@@ -4,9 +4,16 @@ using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Configuración de servicios
-var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") 
-    ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
+//// Configuración de servicios
+//var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") 
+//    ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
+// Verifica si estamos en Render leyendo la variable de entorno DATABASE_URL
+var envConnectionString = Environment.GetEnvironmentVariable("DATABASE_URL");
+
+var connectionString = !string.IsNullOrEmpty(envConnectionString)
+    ? envConnectionString
+    : builder.Configuration.GetConnectionString("DefaultConnection")
+        ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseNpgsql(connectionString));
