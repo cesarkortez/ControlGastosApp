@@ -67,10 +67,8 @@ using (var scope = app.Services.CreateScope())
     {
         var context = services.GetRequiredService<ApplicationDbContext>();
         await context.Database.MigrateAsync(); // Aplica migraciones automáticamente
-        
-        var roleManager = services.GetRequiredService<RoleManager<IdentityRole>>();
-        var userManager = services.GetRequiredService<UserManager<IdentityUser>>();
-        await DbInitializer.SeedAdminAsync(roleManager, userManager);
+
+        await DbInitializer.SeedAdminAsync(services);
     }
     catch (Exception ex)
     {
