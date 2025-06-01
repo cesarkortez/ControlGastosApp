@@ -1,0 +1,22 @@
+﻿services:
+  - type: web
+    name: controlgastos-app
+    runtime: docker
+    plan: free
+    env: docker
+    dockerfilePath: Dockerfile
+    envVars:
+      - key: ASPNETCORE_ENVIRONMENT
+        value: Production
+      - key: ConnectionStrings__DefaultConnection
+        fromDatabase:
+          name: controlgastos-db
+          property: connectionString
+
+databases:
+  - name: controlgastos-db
+    plan: free
+    databaseName: controlgastosdb
+    user: controlgastosdb_user
+    migrationCommand: >
+      dotnet ef database update --no-build

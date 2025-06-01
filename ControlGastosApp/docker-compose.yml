@@ -1,0 +1,27 @@
+﻿version: '3.8'
+
+services:
+  db:
+    image: postgres:15
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: CCesar1590.
+      POSTGRES_DB: controlgastosdb
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  web:
+    build: .
+    ports:
+      - "8080:80"  # Cambiado a 80 para coincidir con el EXPOSE del Dockerfile
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ConnectionStrings__DefaultConnection=Host=db;Database=controlgastosdb;Username=postgres;Password=CCesar1590.
+    depends_on:
+      - db
+
+volumes:
+  pgdata:
