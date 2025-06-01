@@ -1,0 +1,19 @@
+﻿@{
+    ViewData["Title"] = "Gráfico Comparativo";
+}
+
+<h1>Gráfico Comparativo</h1>
+
+<form method="post" class="row g-3">
+    <div class="col-md-4">
+        <label class="form-label">Fecha Inicio</label>
+        <input type="date" name="fechaInicio" value="@ViewData["FechaInicio"]" class="form-control" />
+    </div>
+    <div class="col-md-4">
+        <label class="form-label">Fecha Fin</label>
+        <input type="date" name="fechaFin" value="@ViewData["FechaFin"]" class="form-control" />
+    </div>
+    <div class="col-md-4 align-self-end">
+        <button type="submit" class="btn btn-primary">Generar Gráfico</button>
+    </div>
+</form>

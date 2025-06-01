@@ -1,0 +1,247 @@
+﻿@using ControlGastosApp.ViewModels
+@model IEnumerable<GraficoComparativoViewModel>
+@{
+    ViewData["Title"] = "Resultado Gráfico Comparativo";
+}
+
+<div class="card shadow-lg">
+    <div class="card-header bg-primary text-white py-3">
+        <div class="d-flex justify-content-between align-items-center">
+            <h4 class="mb-0">
+                <i class="bi bi-bar-chart-line me-2"></i>Comparativo Presupuesto vs Ejecución
+            </h4>
+            <div>
+                <span class="badge bg-light text-dark fs-6">
+                    @ViewData["FechaInicio"] - @ViewData["FechaFin"]
+                </span>
+                <a asp-action="GraficoComparativo" class="btn btn-light btn-sm ms-2">
+                    <i class="bi bi-arrow-left me-1"></i> Volver
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="card-body">
+        <!-- Gráfico -->
+        <div class="mb-5" style="position: relative; height: 400px;">
+            <canvas id="graficoComparativo"></canvas>
+        </div>
+        
+        <!-- Tabla de datos -->
+        <div class="mt-5">
+            <h5 class="border-bottom pb-2 mb-4">
+                <i class="bi bi-table me-2"></i>Detalle por Tipo de Gasto
+            </h5>
+            <div class="table-responsive">
+                <table class="table table-bordered table-striped table-hover">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Tipo de Gasto</th>
+                            <th class="text-end">Presupuestado</th>
+                            <th class="text-end">Ejecutado</th>
+                            <th class="text-end">Diferencia</th>
+                            <th class="text-center">% Ejecución</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model)
+                        {
+                            var diferencia = item.Ejecutado - item.Presupuestado;
+                            var porcentaje = item.Presupuestado > 0 ? 
+                                (item.Ejecutado / item.Presupuestado) * 100 : 0;
+                            
+                            <tr>
+                                <td>@item.TipoGasto</td>
+                                <td class="text-end">@item.Presupuestado.ToString("C", new System.Globalization.CultureInfo("es-CO"))</td>
+                                <td class="text-end">@item.Ejecutado.ToString("C", new System.Globalization.CultureInfo("es-CO"))</td>
+                                <td class="text-end @(diferencia > 0 ? "text-danger" : "text-success")">
+                                    @diferencia.ToString("C", new System.Globalization.CultureInfo("es-CO"))
+                                </td>
+                                <td class="text-center">
+                                    <div class="progress" style="height: 20px;">
+                                        <div class="progress-bar @GetProgressBarClass(porcentaje)" 
+                                             role="progressbar" 
+                                             style="width: @Math.Min(porcentaje, 100)%;"
+                                             aria-valuenow="@porcentaje" 
+                                             aria-valuemin="0" 
+                                             aria-valuemax="100">
+                                            @porcentaje.ToString("0.0")%
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                    <tfoot class="table-group-divider fw-bold">
+                        <tr class="table-active">
+                            <td>TOTALES</td>
+                            <td class="text-end">@Model.Sum(x => x.Presupuestado).ToString("C", new System.Globalization.CultureInfo("es-CO"))</td>
+                            <td class="text-end">@Model.Sum(x => x.Ejecutado).ToString("C", new System.Globalization.CultureInfo("es-CO"))</td>
+                            <td class="text-end @(Model.Sum(x => x.Ejecutado - x.Presupuestado) > 0 ? "text-danger" : "text-success")">
+                                @Model.Sum(x => x.Ejecutado - x.Presupuestado).ToString("C", new System.Globalization.CultureInfo("es-CO"))
+                            </td>
+                            <td class="text-center">
+                                @{
+                                    var totalPresupuestado = Model.Sum(x => x.Presupuestado);
+                                    var totalEjecutado = Model.Sum(x => x.Ejecutado);
+                                    var totalPorcentaje = totalPresupuestado > 0 ? 
+                                        (totalEjecutado / totalPresupuestado) * 100 : 0;
+                                }
+                                <span class="badge @GetBadgeClass(totalPorcentaje)">
+                                    @totalPorcentaje.ToString("0.0")%
+                                </span>
+                            </td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </div>
+    </div>
+    
+    <div class="card-footer bg-light py-3">
+        <div class="d-flex justify-content-between align-items-center">
+            <div class="text-muted">
+                <i class="bi bi-info-circle me-1"></i> 
+                Presupuesto = Monto planeado, Ejecutado = Gastos reales
+            </div>
+           
+        </div>
+    </div>
+</div>
+
+@functions {
+    public string GetProgressBarClass(decimal porcentaje)
+    {
+        return porcentaje switch
+        {
+            > 100 => "bg-danger",
+            > 90 => "bg-warning",
+            _ => "bg-success"
+        };
+    }
+    
+    public string GetBadgeClass(decimal porcentaje)
+    {
+        return porcentaje switch
+        {
+            > 100 => "bg-danger",
+            > 90 => "bg-warning",
+            _ => "bg-success"
+        };
+    }
+}
+
+@section Styles {
+    <style>
+        .progress {
+            min-width: 100px;
+        }
+        .progress-bar {
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+    </style>
+}
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const ctx = document.getElementById('graficoComparativo').getContext('2d');
+            const tiposGasto = @Html.Raw(Json.Serialize(Model.Select(x => x.TipoGasto)));
+            const presupuestado = @Html.Raw(Json.Serialize(Model.Select(x => x.Presupuestado)));
+            const ejecutado = @Html.Raw(Json.Serialize(Model.Select(x => x.Ejecutado)));
+            
+            // Colores para las barras
+            const coloresPresupuestado = presupuestado.map((p, i) => {
+                const ejec = ejecutado[i];
+                return ejec > p ? 'rgba(220, 53, 69, 0.7)' : 'rgba(13, 110, 253, 0.7)';
+            });
+            
+            const coloresEjecutado = ejecutado.map((e, i) => {
+                const pres = presupuestado[i];
+                return e > pres ? 'rgba(220, 53, 69, 0.9)' : 'rgba(25, 135, 84, 0.9)';
+            });
+            
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: tiposGasto,
+                    datasets: [
+                        {
+                            label: 'Presupuestado',
+                            data: presupuestado,
+                            backgroundColor: coloresPresupuestado,
+                            borderColor: 'rgba(13, 110, 253, 1)',
+                            borderWidth: 1
+                        },
+                        {
+                            label: 'Ejecutado',
+                            data: ejecutado,
+                            backgroundColor: coloresEjecutado,
+                            borderColor: 'rgba(25, 135, 84, 1)',
+                            borderWidth: 1
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return new Intl.NumberFormat('es-CO', {
+                                        style: 'currency',
+                                        currency: 'COP',
+                                        maximumFractionDigits: 0
+                                    }).format(value);
+                                }
+                            },
+                            grid: {
+                                color: 'rgba(0, 0, 0, 0.1)'
+                            }
+                        },
+                        x: {
+                            grid: {
+                                display: false
+                            }
+                        }
+                    },
+                    plugins: {
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    let label = context.dataset.label || '';
+                                    if (label) {
+                                        label += ': ';
+                                    }
+                                    if (context.parsed.y !== null) {
+                                        label += new Intl.NumberFormat('es-CO', {
+                                            style: 'currency',
+                                            currency: 'COP'
+                                        }).format(context.parsed.y);
+                                    }
+                                    return label;
+                                }
+                            }
+                        },
+                        legend: {
+                            position: 'top',
+                            labels: {
+                                boxWidth: 15,
+                                padding: 20
+                            }
+                        }
+                    }
+                }
+            });
+        });
+        
+        function exportToExcel() {
+            // Implementar exportación a Excel
+            alert('Funcionalidad de exportación a Excel será implementada próximamente');
+        }
+    </script>
+}

@@ -1,0 +1,240 @@
+﻿<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Control de Gastos</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/ControlGastosApp.styles.css" asp-append-version="true" />
+    <style>
+        :root {
+            --primary-color: #4e73df;
+            --secondary-color: #f8f9fa;
+            --accent-color: #2e59d9;
+            --dark-color: #2c3e50;
+            --light-color: #ffffff;
+        }
+
+        /* Estructura para footer fijo */
+        html, body {
+            height: 100%;
+        }
+
+        body {
+            display: flex;
+            flex-direction: column;
+            background-color: #f8f9fc;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .wrapper {
+            flex: 1 0 auto;
+        }
+
+        footer {
+            flex-shrink: 0;
+            background-color: var(--dark-color);
+            color: var(--light-color);
+            padding: 1.5rem 0;
+            margin-top: auto;
+        }
+
+        /* Resto de tus estilos */
+        .navbar {
+            box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15);
+            padding: 0.75rem 1rem;
+            background: linear-gradient(135deg, var(--primary-color), var(--accent-color)) !important;
+        }
+
+        .navbar-brand {
+            font-weight: 700;
+            font-size: 1.25rem;
+            display: flex;
+            align-items: center;
+        }
+
+            .navbar-brand i {
+                margin-right: 0.5rem;
+            }
+
+        .dropdown-menu {
+            border: none;
+            box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15);
+            border-radius: 0.35rem;
+        }
+
+        .dropdown-item {
+            padding: 0.5rem 1.5rem;
+            font-weight: 500;
+        }
+
+            .dropdown-item:hover {
+                background-color: var(--secondary-color);
+                color: var(--primary-color);
+            }
+
+        .dropdown-divider {
+            margin: 0.25rem 0;
+        }
+
+        .nav-link {
+            font-weight: 500;
+            padding: 0.5rem 1rem !important;
+        }
+
+        .container {
+            max-width: 1400px;
+        }
+
+        main {
+            padding-top: 2rem;
+            padding-bottom: 2rem;
+        }
+
+        footer a {
+            color: var(--light-color);
+            text-decoration: none;
+        }
+
+            footer a:hover {
+                color: var(--primary-color);
+                text-decoration: underline;
+            }
+
+        .card {
+            border: none;
+            border-radius: 0.5rem;
+            box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.1);
+            margin-bottom: 1.5rem;
+        }
+
+        .card-header {
+            background-color: var(--light-color);
+            border-bottom: 1px solid #e3e6f0;
+            padding: 1rem 1.5rem;
+            font-weight: 600;
+            border-radius: 0.5rem 0.5rem 0 0 !important;
+        }
+
+        .btn-primary {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+
+            .btn-primary:hover {
+                background-color: var(--accent-color);
+                border-color: var(--accent-color);
+            }
+
+        .page-header {
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid #e3e6f0;
+        }
+
+        .page-header-title {
+            font-size: 1.75rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .breadcrumb {
+            background-color: transparent;
+            padding: 0;
+        }
+
+        .table th {
+            border-top: none;
+            font-weight: 600;
+            color: var(--dark-color);
+        }
+
+        .alert {
+            border-radius: 0.5rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="wrapper">
+        <header>
+            <nav class="navbar navbar-expand-lg navbar-dark">
+                <div class="container">
+                    <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">
+                        <i class="bi bi-pie-chart-fill"></i> Control de Gastos
+                    </a>
+                    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                        <span class="navbar-toggler-icon"></span>
+                    </button>
+                    <div class="collapse navbar-collapse" id="navbarNav">
+                        @if (User.Identity.IsAuthenticated)
+                        {
+                            <ul class="navbar-nav me-auto">
+                                <li class="nav-item dropdown">
+                                    <a class="nav-link dropdown-toggle" href="#" id="mantenimientosDropdown" role="button" data-bs-toggle="dropdown">
+                                        <i class="bi bi-gear me-1"></i> Mantenimientos
+                                    </a>
+                                    <ul class="dropdown-menu">
+                                        <li><a class="dropdown-item" asp-controller="TiposGasto" asp-action="Index"><i class="bi bi-tags me-2"></i>Tipos de Gasto</a></li>
+                                        <li><a class="dropdown-item" asp-controller="FondosMonetarios" asp-action="Index"><i class="bi bi-wallet2 me-2"></i>Fondos Monetarios</a></li>
+                                        <li><a class="dropdown-item" asp-controller="Presupuestos" asp-action="Index"><i class="bi bi-clipboard-data me-2"></i>Presupuestos</a></li>
+                                        <li><hr class="dropdown-divider"></li>
+                                        <li><a class="dropdown-item" asp-controller="Gastos" asp-action="Index"><i class="bi bi-cash-stack me-2"></i>Registros de Gastos</a></li>
+                                        <li><a class="dropdown-item" asp-controller="Depositos" asp-action="Index"><i class="bi bi-arrow-down-circle me-2"></i>Depósitos</a></li>
+                                    </ul>
+                                </li>
+                                <li class="nav-item dropdown">
+                                    <a class="nav-link dropdown-toggle" href="#" id="consultasDropdown" role="button" data-bs-toggle="dropdown">
+                                        <i class="bi bi-graph-up me-1"></i> Consultas
+                                    </a>
+                                    <ul class="dropdown-menu">
+                                        <li><a class="dropdown-item" asp-controller="Consultas" asp-action="Movimientos"><i class="bi bi-list-check me-2"></i>Movimientos</a></li>
+                                        <li><a class="dropdown-item" asp-controller="Consultas" asp-action="GraficoComparativo"><i class="bi bi-bar-chart me-2"></i>Gráficos</a></li>
+                                    </ul>
+                                </li>
+                            </ul>
+                        }
+                        <partial name="_LoginPartial" />
+                    </div>
+                </div>
+            </nav>
+        </header>
+
+        @RenderSection("Styles", required: false)
+
+        <div class="container">
+            <main role="main" class="pb-3">
+                @RenderBody()
+            </main>
+        </div>
+    </div>
+
+    <footer>
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6">
+                    <h5>Sistema desarrollado por César Cortez Berrocal</h5>
+                    <p>© @DateTime.Now.Year - Control de Gastos App</p>
+                </div>
+                <div class="col-md-6">
+                    <h5 class="mb-3">Contacto</h5>
+                    <ul class="list-unstyled">
+                        <li><i class="bi bi-envelope me-2"></i> cesarc1590@mail.com</li>
+                        <li><i class="bi bi-whatsapp me-2"></i> +57 313 5938115</li>
+                        <div>
+                            <a asp-controller="Home" asp-action="Privacy" class="me-3">Política Y Criterio</a>
+                        </div>
+                    </ul>
+                </div>
+                
+            </div>
+        </div>
+    </footer>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

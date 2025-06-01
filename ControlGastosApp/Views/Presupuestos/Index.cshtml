@@ -1,0 +1,78 @@
+﻿@model IEnumerable<ControlGastosApp.Models.Presupuesto>
+
+@{
+    ViewData["Title"] = "Listado de Presupuestos";
+}
+
+<h1>Presupuestos</h1>
+<p>
+    <a asp-action="Create" class="btn btn-primary">Crear Nuevo Presupuesto</a>
+</p>
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>
+                @Html.DisplayNameFor(model => model.First().TipoGastoCodigo)
+            </th>
+            <th>
+                Nombre Tipo Gasto
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.First().FondoMonetarioId)
+            </th>
+            <th>
+                Nombre Fondo
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.First().Mes)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.First().Anio)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.First().MontoPresupuestado)
+            </th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @{
+            // ViewBag.DictTipoNombres: diccionario <Presupuesto.Id, NombreTipo>
+            // ViewBag.DictFondoNombres: diccionario <Presupuesto.Id, NombreFondo>
+            var dictTipo = ViewBag.DictTipoNombres as Dictionary<int, string>;
+            var dictFondo = ViewBag.DictFondoNombres as Dictionary<int, string>;
+        }
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>
+                    @item.TipoGastoCodigo
+                </td>
+                <td>
+                    @dictTipo[item.Id]
+                </td>
+                <td>
+                    @item.FondoMonetarioId
+                </td>
+                <td>
+                    @dictFondo[item.Id]
+                </td>
+                <td>
+                    @item.Mes
+                </td>
+                <td>
+                    @item.Anio
+                </td>
+                <td>
+                    @item.MontoPresupuestado.ToString("C2")
+                </td>
+                <td>
+                    <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-info">Detalles</a>
+                    <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-warning">Editar</a>
+                    <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-sm btn-danger">Eliminar</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

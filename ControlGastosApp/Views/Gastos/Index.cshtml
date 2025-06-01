@@ -1,0 +1,211 @@
+﻿@model IEnumerable<ControlGastosApp.Models.Gasto>
+
+@{
+    ViewData["Title"] = "Historial de Gastos";
+}
+
+<div class="container-fluid px-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="mt-4">
+            <i class="bi bi-receipt-cutoff me-2"></i>@ViewData["Title"]
+        </h1>
+        <a asp-action="Create" class="btn btn-primary">
+            <i class="bi bi-plus-circle me-1"></i> Nuevo Gasto
+        </a>
+    </div>
+
+    <div class="card mb-4">
+        <div class="card-header bg-white">
+            <div class="row align-items-center">
+                <div class="col-md-4">
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="bi bi-search"></i></span>
+                        <input type="text" id="searchInput" class="form-control" placeholder="Buscar...">
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <input type="month" id="monthFilter" class="form-control" value="@DateTime.Now.ToString("yyyy-MM")">
+                </div>
+                <div class="col-md-4 text-end">
+                    <div class="dropdown">
+                        <button class="btn btn-outline-secondary dropdown-toggle" type="button" id="filterDropdown" data-bs-toggle="dropdown">
+                            <i class="bi bi-funnel me-1"></i>Filtrar
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><a class="dropdown-item" href="#" data-filter="all">Todos</a></li>
+                            <li><a class="dropdown-item" href="#" data-filter="today">Hoy</a></li>
+                            <li><a class="dropdown-item" href="#" data-filter="week">Esta semana</a></li>
+                            <li><a class="dropdown-item" href="#" data-filter="month">Este mes</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover" id="datatablesSimple">
+                    <thead>
+                        <tr>
+                            <th>Fecha</th>
+                            <th>Documento</th>
+                            <th>Comercio</th>
+                            <th>Fondo</th>
+                            <th class="text-end">Total</th>
+                            <th class="text-center">Detalles</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model)
+                        {
+                            <tr>
+                                <td>@item.Fecha.ToString("dd/MM/yyyy")</td>
+                                <td>
+                                    <span class="badge bg-secondary">@item.TipoDocumento</span>
+                                    @item.NumeroDocumento
+                                </td>
+                                <td>@item.Comercio</td>
+                                <td>@item.FondoMonetario?.Nombre</td>
+                                <td class="text-end fw-bold text-danger">@item.MontoTotal.ToString("C")</td>
+                                <td class="text-center">
+                                    <button class="btn btn-sm btn-outline-info btn-details" data-id="@item.Id">
+                                        <i class="bi bi-eye"></i>
+                                    </button>
+                                </td>
+                                <td class="text-end">
+                                    <div class="dropdown">
+                                        <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                                            <i class="bi bi-gear"></i>
+                                        </button>
+                                        <ul class="dropdown-menu dropdown-menu-end">
+                                            <li><a class="dropdown-item" asp-action="Edit" asp-route-id="@item.Id"><i class="bi bi-pencil me-2"></i>Editar</a></li>
+                                            <li><a class="dropdown-item" asp-action="Details" asp-route-id="@item.Id"><i class="bi bi-info-circle me-2"></i>Detalles</a></li>
+                                            <li><hr class="dropdown-divider"></li>
+                                            <li><a class="dropdown-item text-danger" asp-action="Delete" asp-route-id="@item.Id"><i class="bi bi-trash me-2"></i>Eliminar</a></li>
+                                        </ul>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                    <tfoot class="table-group-divider">
+                        <tr class="fw-bold">
+                            <td colspan="4">Total General</td>
+                            <td class="text-end text-danger">@Model.Sum(g => g.MontoTotal).ToString("C")</td>
+                            <td colspan="2"></td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para detalles -->
+<div class="modal fade" id="detailsModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-light">
+                <h5 class="modal-title">Detalles del Gasto</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="modalBodyContent">
+                <!-- Contenido cargado por AJAX -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Styles {
+    <style>
+        .card {
+            border: none;
+            box-shadow: 0 0.15rem 1.75rem 0 rgba(33, 40, 50, 0.15);
+        }
+
+        .card-header {
+            background-color: #f8f9fa;
+            border-bottom: 1px solid rgba(33, 40, 50, 0.125);
+        }
+
+        .table th {
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            color: #4e73df;
+            background-color: #f8f9fc;
+        }
+
+        .badge {
+            font-size: 0.75em;
+            font-weight: 500;
+        }
+
+        .dropdown-menu {
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+        }
+    </style>
+}
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            // Filtrado por búsqueda
+            $('#searchInput').keyup(function () {
+                const searchText = $(this).val().toLowerCase();
+                $('#datatablesSimple tbody tr').filter(function () {
+                    $(this).toggle($(this).text().toLowerCase().indexOf(searchText) > -1);
+                });
+            });
+
+            // Filtrado por fecha
+            $('#monthFilter').change(function () {
+                const selectedMonth = $(this).val();
+                window.location.href = `@Url.Action("Index")?month=${selectedMonth}`;
+            });
+
+            // Filtros rápidos
+            $('[data-filter]').click(function (e) {
+                e.preventDefault();
+                const filter = $(this).data('filter');
+                let url = '@Url.Action("Index")';
+
+                switch (filter) {
+                    case 'today':
+                        url += '?filter=today';
+                        break;
+                    case 'week':
+                        url += '?filter=week';
+                        break;
+                    case 'month':
+                        url += '?filter=month';
+                        break;
+                }
+
+                window.location.href = url;
+            });
+
+            // Mostrar detalles en modal
+            $('.btn-details').click(function () {
+                const id = $(this).data('id');
+                $('#modalBodyContent').load(`@Url.Action("DetailsPartial")/${id}`);
+                $('#detailsModal').modal('show');
+            });
+
+            // Inicializar DataTable
+            $('#datatablesSimple').DataTable({
+                ordering: true,
+                order: [[0, 'desc']],
+                language: {
+                    url: '//cdn.datatables.net/plug-ins/1.13.4/i18n/es-ES.json'
+                },
+                dom: '<"top"f>rt<"bottom"lip><"clear">',
+                responsive: true
+            });
+        });
+    </script>
+}

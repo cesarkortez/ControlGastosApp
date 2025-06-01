@@ -1,0 +1,17 @@
+﻿# Archivos temporales de Visual Studio
+.vs/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Archivos de publicación
+bin/
+obj/
+
+# Configuración de Rider
+.idea/
+
+# Archivos del sistema
+*.log
+

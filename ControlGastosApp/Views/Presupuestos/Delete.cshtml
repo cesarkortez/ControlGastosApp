@@ -1,0 +1,62 @@
+﻿@model ControlGastosApp.Models.Presupuesto
+
+@{
+    ViewData["Title"] = "Eliminar Presupuesto";
+}
+
+<h1>Eliminar Presupuesto</h1>
+<h3>¿Está seguro de que desea eliminar este registro?</h3>
+<hr />
+
+<div>
+    <h4>Datos del Presupuesto</h4>
+    <dl class="row">
+        <dt class="col-sm-2">Tipo de Gasto</dt>
+        <dd class="col-sm-10">
+            @ViewBag.TipoGastoNombre
+        </dd>
+
+        <dt class="col-sm-2">Código Tipo Gasto</dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.TipoGastoCodigo)
+        </dd>
+
+        <dt class="col-sm-2">Fondo Monetario</dt>
+        <dd class="col-sm-10">
+            @ViewBag.FondoNombre
+        </dd>
+
+        <dt class="col-sm-2">ID Fondo</dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.FondoMonetarioId)
+        </dd>
+
+        <dt class="col-sm-2">@Html.DisplayNameFor(model => model.Mes)</dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.Mes)
+        </dd>
+
+        <dt class="col-sm-2">@Html.DisplayNameFor(model => model.Anio)</dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.Anio)
+        </dd>
+
+        <dt class="col-sm-2">@Html.DisplayNameFor(model => model.MontoPresupuestado)</dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.MontoPresupuestado)
+        </dd>
+
+        <dt class="col-sm-2">@Html.DisplayNameFor(model => model.MontoEjecutado)</dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.MontoEjecutado)
+        </dd>
+    </dl>
+</div>
+
+<form asp-action="DeleteConfirmed" method="post">
+    <input type="hidden" asp-for="Id" />
+    <div class="form-group">
+        <button type="submit" class="btn btn-danger">Eliminar</button>
+        <a asp-action="Index" class="btn btn-secondary ms-2">Cancelar</a>
+    </div>
+</form>

@@ -1,0 +1,418 @@
+﻿@model ControlGastosApp.Models.Gasto
+
+@{
+    ViewData["Title"] = "Registrar Nuevo Gasto";
+    bool hayFondos = ViewBag.HayFondos as bool? ?? false;
+    bool hayTiposGasto = ViewBag.HayTiposGasto as bool? ?? false;
+    var selectFondos = ViewBag.FondoMonetarioId as SelectList;
+    var selectTiposGasto = ViewBag.TiposGasto as SelectList;
+    var selectTiposDoc = ViewBag.TiposDocumento as List<SelectListItem>;
+}
+
+<div class="container py-4">
+    <div class="card shadow-lg border-0 rounded-lg">
+        <!-- Header con icono y título -->
+        <div class="card-header bg-gradient-primary text-white py-3">
+            <div class="d-flex align-items-center justify-content-between">
+                <div>
+                    <i class="bi bi-cash-stack me-2 fs-4"></i>
+                    <h3 class="mb-0">@ViewData["Title"]</h3>
+                </div>
+                <a asp-action="Index" class="btn btn-light btn-sm">
+                    <i class="bi bi-arrow-left me-1"></i> Volver
+                </a>
+            </div>
+        </div>
+
+        <div class="card-body p-4">
+            <!-- Alertas -->
+            @if (TempData["Alerta"] != null)
+            {
+                <div class="alert alert-warning alert-dismissible fade show mb-4">
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                    @TempData["Alerta"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            }
+
+            <form asp-action="Create" method="post" id="formGasto" class="needs-validation" novalidate>
+                @Html.AntiForgeryToken()
+
+                <!-- Sección de encabezado -->
+                <div class="row g-3 mb-4">
+                    <div class="col-md-4">
+                        <label asp-for="Fecha" class="form-label fw-bold"></label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="bi bi-calendar-date"></i></span>
+                            <input asp-for="Fecha" type="date" class="form-control" required />
+                        </div>
+                        <span asp-validation-for="Fecha" class="text-danger small"></span>
+                    </div>
+
+                    <div class="col-md-4">
+                        <label asp-for="FondoMonetarioId" class="form-label fw-bold">Fondo Monetario</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="bi bi-wallet2"></i></span>
+                            <select asp-for="FondoMonetarioId" class="form-select" asp-items="selectFondos" required>
+                                <option value="">-- Seleccione --</option>
+                            </select>
+                        </div>
+                        <span asp-validation-for="FondoMonetarioId" class="text-danger small"></span>
+                    </div>
+
+                    <div class="col-md-4">
+                        <label asp-for="Comercio" class="form-label fw-bold"></label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="bi bi-shop"></i></span>
+                            <input asp-for="Comercio" class="form-control" placeholder="Nombre del comercio" required />
+                        </div>
+                        <span asp-validation-for="Comercio" class="text-danger small"></span>
+                    </div>
+                </div>
+
+                <!-- Sección de documento -->
+                <div class="row g-3 mb-4">
+                    <div class="col-md-4">
+                        <label asp-for="TipoDocumento" class="form-label fw-bold">Tipo Documento</label>
+                        <select asp-for="TipoDocumento" class="form-select" asp-items="selectTiposDoc" required>
+                            <option value="">-- Seleccione --</option>
+                        </select>
+                        <span asp-validation-for="TipoDocumento" class="text-danger small"></span>
+                    </div>
+
+                    <div class="col-md-4">
+                        <label asp-for="NumeroDocumento" class="form-label fw-bold"></label>
+                        <div class="input-group">
+                            <span class="input-group-text">#</span>
+                            <input asp-for="NumeroDocumento" class="form-control" placeholder="Número de documento" required />
+                        </div>
+                        <span asp-validation-for="NumeroDocumento" class="text-danger small"></span>
+                    </div>
+
+                    <div class="col-md-4">
+                        <label asp-for="Observaciones" class="form-label fw-bold"></label>
+                        <input asp-for="Observaciones" class="form-control" placeholder="Observaciones (opcional)" />
+                        <span asp-validation-for="Observaciones" class="text-danger small"></span>
+                    </div>
+                </div>
+
+                <!-- Sección de detalles -->
+                <div class="border-top pt-4 mt-4">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 class="mb-0">
+                            <i class="bi bi-list-check me-2"></i>Detalles del Gasto
+                        </h5>
+                        @if (hayTiposGasto)
+                        {
+                            <button type="button" id="btnAddDetalle" class="btn btn-outline-primary btn-sm">
+                                <i class="bi bi-plus-circle me-1"></i> Agregar
+                            </button>
+                        }
+                    </div>
+
+                    @if (!hayTiposGasto)
+                    {
+                        <div class="alert alert-danger d-flex align-items-center">
+                            <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                            <div>
+                                No hay tipos de gasto disponibles.
+                                <a asp-controller="TiposGasto" asp-action="Create" class="alert-link">
+                                    Crear nuevo tipo de gasto
+                                </a>
+                            </div>
+                        </div>
+                    }
+
+                    <div class="table-responsive">
+                        <table class="table table-hover" id="tblDetalles">
+                            <thead class="table-light">
+                                <tr>
+                                    <th width="55%">Tipo de Gasto</th>
+                                    <th width="35%">Monto</th>
+                                    <th width="10%"></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @if (Model.Detalles != null && Model.Detalles.Count > 0)
+                                {
+                                    @for (int i = 0; i < Model.Detalles.Count; i++)
+                                    {
+                                        <tr>
+                                            <td>
+                                                <select name="Detalles[@i].TipoGastoCodigo"
+                                                        class="form-select tipo-gasto-select"
+                                                        asp-items="selectTiposGasto" required>
+                                                    <option value="">-- Seleccione --</option>
+                                                </select>
+                                                <span class="text-danger small" data-valmsg-for="Detalles[@i].TipoGastoCodigo"></span>
+                                            </td>
+                                            <td>
+                                                <div class="input-group">
+                                                    <span class="input-group-text">$</span>
+                                                    <input name="Detalles[@i].Monto"
+                                                           class="form-control"
+                                                           type="number"
+                                                           step="0.01"
+                                                           min="0.01"
+                                                           placeholder="0.00"
+                                                           required />
+                                                </div>
+                                                <span class="text-danger small" data-valmsg-for="Detalles[@i].Monto"></span>
+                                            </td>
+                                            <td class="text-center">
+                                                @if (i > 0)
+                                                {
+                                                    <button type="button" class="btn btn-sm btn-outline-danger btn-remove">
+                                                        <i class="bi bi-trash"></i>
+                                                    </button>
+                                                }
+                                            </td>
+                                        </tr>
+                                    }
+                                }
+                                else
+                                {
+                                    <tr>
+                                        <td>
+                                            <select name="Detalles[0].TipoGastoCodigo"
+                                                    class="form-select tipo-gasto-select"
+                                                    asp-items="selectTiposGasto" required>
+                                                <option value="">-- Seleccione --</option>
+                                            </select>
+                                            <span class="text-danger small" data-valmsg-for="Detalles[0].TipoGastoCodigo"></span>
+                                        </td>
+                                        <td>
+                                            <div class="input-group">
+                                                <span class="input-group-text">$</span>
+                                                <input name="Detalles[0].Monto"
+                                                       class="form-control"
+                                                       type="number"
+                                                       step="0.01"
+                                                       min="0.01"
+                                                       placeholder="0.00"
+                                                       required />
+                                            </div>
+                                            <span class="text-danger small" data-valmsg-for="Detalles[0].Monto"></span>
+                                        </td>
+                                        <td></td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                    <small class="text-muted d-block mt-2">
+                        <i class="bi bi-info-circle me-1"></i> Cada tipo de gasto solo puede aparecer una vez.
+                    </small>
+                </div>
+
+                <!-- Botones de acción -->
+                <div class="d-flex justify-content-end gap-2 mt-5">
+                    <a asp-action="Index" class="btn btn-outline-secondary">
+                        <i class="bi bi-x-circle me-1"></i> Cancelar
+                    </a>
+                    <button type="submit" class="btn btn-primary" disabled="@(!hayTiposGasto || !hayFondos)">
+                        <i class="bi bi-check-circle me-1"></i> Guardar Gasto
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Styles {
+    <style>
+        .card {
+            border: none;
+            box-shadow: 0 0.5rem 1.5rem rgba(0, 0, 0, 0.08);
+        }
+
+        .card-header {
+            border-radius: 0.35rem 0.35rem 0 0 !important;
+        }
+
+        .form-control, .form-select {
+            border-radius: 0.375rem;
+            padding: 0.5rem 1rem;
+        }
+
+        .input-group-text {
+            background-color: #f8f9fa;
+        }
+
+        .table {
+            --bs-table-bg: transparent;
+        }
+
+            .table th {
+                border-top: none;
+                font-weight: 600;
+                color: #495057;
+                text-transform: uppercase;
+                font-size: 0.75rem;
+            }
+
+        .btn-remove {
+            width: 32px;
+            height: 32px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0;
+        }
+    </style>
+}
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+    <script>
+        $(document).ready(function () {
+            // Agregar fila de detalle
+            $("#btnAddDetalle").click(function () {
+                const index = $("#tblDetalles tbody tr").length;
+                const totalTipos = @selectTiposGasto.Count();
+
+                if (index >= totalTipos) {
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Límite alcanzado',
+                        text: 'Ya se han agregado todos los tipos de gasto disponibles',
+                        confirmButtonColor: '#4e73df'
+                    });
+                    return;
+                }
+
+                agregarFilaDetalle(index);
+                resetValidation();
+            });
+
+            // Eliminar fila
+            $(document).on("click", ".btn-remove", function () {
+                $(this).closest("tr").remove();
+                reindexarFilas();
+                resetValidation();
+                actualizarOpcionesDisponibles();
+            });
+
+            // Validar tipo de gasto duplicado
+            $(document).on("change", "select[name$='.TipoGastoCodigo']", function () {
+                const valorSeleccionado = $(this).val();
+                const $mensajeError = $(this).next(".text-danger");
+
+                if (valorSeleccionado === "") {
+                    $mensajeError.text("Seleccione un tipo de gasto");
+                    return;
+                }
+
+                let contador = 0;
+                $("select[name$='.TipoGastoCodigo']").each(function () {
+                    if ($(this).val() === valorSeleccionado) contador++;
+                });
+
+                if (contador > 1) {
+                    $mensajeError.text("Este tipo de gasto ya fue seleccionado");
+                    $(this).val("").focus();
+                } else {
+                    $mensajeError.text("");
+                }
+
+                actualizarOpcionesDisponibles();
+            });
+
+            // Reindexar antes de enviar el formulario
+            $("#formGasto").on("submit", function () {
+                reindexarFilas();
+                return true;
+            });
+
+            function agregarFilaDetalle(index) {
+                const newRow = `
+                            <tr>
+                                <td>
+                                    <select name="Detalles[${index}].TipoGastoCodigo"
+                                            class="form-select tipo-gasto-select" required>
+                                        <option value="">-- Seleccione --</option>
+        @foreach (var item in selectTiposGasto)
+        {
+                                                <option value="@item.Value">@item.Text</option>
+        }
+                                    </select>
+                                    <span class="text-danger small" data-valmsg-for="Detalles[${index}].TipoGastoCodigo"></span>
+                                </td>
+                                <td>
+                                    <div class="input-group">
+                                        <span class="input-group-text">$</span>
+                                        <input name="Detalles[${index}].Monto"
+                                               class="form-control"
+                                               type="number"
+                                               step="0.01"
+                                               min="0.01"
+                                               placeholder="0.00"
+                                               required />
+                                    </div>
+                                    <span class="text-danger small" data-valmsg-for="Detalles[${index}].Monto"></span>
+                                </td>
+                                <td class="text-center">
+                                    <button type="button" class="btn btn-sm btn-outline-danger btn-remove">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </td>
+                            </tr>`;
+
+                $("#tblDetalles tbody").append(newRow);
+                actualizarOpcionesDisponibles();
+            }
+
+            function reindexarFilas() {
+                $("#tblDetalles tbody tr").each(function (i) {
+                    $(this).find("select, input").each(function () {
+                        const $el = $(this);
+                        const name = $el.attr("name");
+                        if (name) {
+                            $el.attr("name", name.replace(/Detalles\[\d+\]/, `Detalles[${i}]`));
+                        }
+                    });
+
+                    $(this).find("span[data-valmsg-for]").each(function () {
+                        const currentFor = $(this).attr("data-valmsg-for");
+                        $(this).attr("data-valmsg-for", currentFor.replace(/Detalles\[\d+\]/, `Detalles[${i}]`));
+                    });
+                });
+            }
+
+            function resetValidation() {
+                const form = $("#formGasto");
+                form.removeData("validator");
+                form.removeData("unobtrusiveValidation");
+                $.validator.unobtrusive.parse(form);
+            }
+
+            function actualizarOpcionesDisponibles() {
+                const seleccionados = [];
+                $("select.tipo-gasto-select").each(function () {
+                    const val = $(this).val();
+                    if (val) seleccionados.push(val);
+                });
+
+                $("select.tipo-gasto-select").each(function () {
+                    const actual = $(this).val();
+                    $(this).find("option").each(function () {
+                        const optionVal = $(this).val();
+                        if (optionVal === "") {
+                            $(this).prop("disabled", false);
+                        } else if (optionVal === actual) {
+                            $(this).prop("disabled", false);
+                        } else {
+                            $(this).prop("disabled", seleccionados.includes(optionVal));
+                        }
+                    });
+                });
+
+                const totalTipos = @selectTiposGasto.Count();
+                const usados = $("select.tipo-gasto-select").length;
+                $("#btnAddDetalle").prop("disabled", usados >= totalTipos);
+            }
+        });
+    </script>
+}
